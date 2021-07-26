@@ -2,20 +2,32 @@
  * @Author: wangzhongjie
  * @Date: 2021-07-26 10:22:44
  * @LastEditors: wangzhongjie
- * @LastEditTime: 2021-07-26 11:49:22
+ * @LastEditTime: 2021-07-26 13:52:47
  * @Description:上传文件
  * @Email: UvDream@163.com
  */
 import type { BytemdPlugin } from 'bytemd'
 import { icons } from './icons'
-import en from './locales/en.json'
+import ZH from '../locales/zh_Hans.json'
 import selectFiles from 'select-files'
 import type { EditorProps } from "bytemd/lib/types"
-
+interface Image extends Node, Resource, Alternative {
+    type: 'image';
+}
+interface Resource {
+    url: string;
+    title?: string | undefined;
+}
+interface Alternative {
+    alt?: string | undefined;
+}
+interface UploadFileProps extends EditorProps {
+    uploadFile?: (files: File[]) => Promise<Pick<Image, 'url' | 'alt' | 'title'>[]>;
+}
 
 export interface BytemdPluginUploadFileOptions {
-    locale?: Partial<typeof en>,
-    uploadFile?: EditorProps['uploadFile']
+    locale?: Partial<typeof ZH>,
+    uploadFile?: UploadFileProps['uploadFile']
 }
 
 export default function UploadFile({
@@ -23,7 +35,7 @@ export default function UploadFile({
     uploadFile
 }: BytemdPluginUploadFileOptions = {}): BytemdPlugin {
 
-    const locale = { ...en, ..._locale } as typeof en
+    const locale = { ...ZH, ..._locale } as typeof ZH
 
     return {
         actions: [
@@ -32,7 +44,6 @@ export default function UploadFile({
                 icon: icons.uploadFile,
                 handler: {
                     type: 'action',
-                    shortcut: '哈哈',
                     async click(ctx) {
                         const fileList = await selectFiles({
                             accept: '*',
@@ -44,7 +55,7 @@ export default function UploadFile({
                             const pos = ctx.appendBlock(
                                 files
                                     .map(({ url, alt, title }, i) => {
-                                        alt = alt ?? files[i].name
+                                        alt = alt ?? files[i].title
                                         return `[${alt}](${url}${title ? ` "${title}"` : ''})`
                                     })
                                     .join('\n\n')
